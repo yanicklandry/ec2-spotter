@@ -12,30 +12,30 @@ fi
 if [ "x$2" = "x" ]; then echo "missing volume name"; exit -1; fi
 
 ROOT_VOL_NAME=$2
+
 ec2spotter_elastic_ip=$3
+
+# Get Instance ID and current zone from AWS
+export INSTANCE_ID=`curl -s http://169.254.169.254/latest/meta-data/instance-id`
+export SPOT_ZONE=`curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone`
+export SPOT_REGION=${SPOT_ZONE::-1} # Get the region by stripping the last character of the ROOT_ZONE
 
 export AWS_CREDENTIAL_FILE=/root/.aws.creds
 . /root/.aws.creds
 export AWS_ACCESS_KEY=$AWSAccessKeyId
 export AWS_SECRET_KEY=$AWSSecretKey
 
+#TODO Replace with awscli
 export AMIBIN=./ec2-ami-tools-*/bin
 export APIBIN=./ec2-api-tools-*/bin
-
 export EC2_HOME=$(ls -d ./ec2-api-tools-*)
-
 export JAVA_HOME=/usr/lib/jvm/default-java
 export ARCH=`uname -i`
 
-export INSTANCE_ID=`curl -s http://169.254.169.254/latest/meta-data/instance-id`
-export SPOT_ZONE=`curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone`
-export SPOT_REGION=${SPOT_ZONE::-1} # Get the region by stripping the last character of the ROOT_ZONE
 
 ROOT_REGION=$SPOT_REGION # By default, we're in the same region
-#ROOT_ZONE=$SPOT_ZONE
 
 echo "Looking for a volume in $ROOT_REGION with Name = $ROOT_VOL_NAME"
-
 aws ec2 describe-volumes \
         --filters Name=tag-key,Values="Name" Name=tag-value,Values="$ROOT_VOL_NAME" \
         --region ${SPOT_REGION} > volumes.tmp || exit -1
@@ -127,7 +127,7 @@ ${APIBIN}/ec2-attach-volume $PERSISTENT_ROOT_VOLUME -d /dev/sdf --instance $INST
 while ! lsblk /dev/xvdf
 do
   echo "waiting for device to attach"
-  sleep 10
+  sleep 5
 done
 
 # acquire the elastic ip

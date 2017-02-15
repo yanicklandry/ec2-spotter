@@ -6,15 +6,17 @@ if [ "$1" = "" ]; then echo "USER ERROR: please specify a configuration file"; e
 
 . $1 || exit -1
 ROOT_VOL_NAME=$ec2spotter_volume_name
-
-LAUNCH_ZONE=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)
+# Desired launch zone
+LAUNCH_ZONE=$ec2spotter_launch_zone
+# Region is LAUNCH_ZONE minus the last character
 LAUNCH_REGION=$(echo $LAUNCH_ZONE | sed -e 's/.$//')
-PUB_KEY=$(wget -q -O - http://169.254.169.254/latest/meta-data/public-keys | awk -F= '{print $2}')
+PUB_KEY=$ec2spotter_key_name
 
 echo "ROOT_VOL_NAME=${ROOT_VOL_NAME}; LAUNCH_ZONE=${LAUNCH_ZONE}; LAUNCH_REGION=${LAUNCH_REGION}; PUB_KEY=${PUB_KEY}"
 
-export AWS_CREDENTIAL_FILE=/root/.aws.creds
-. /root/.aws.creds
+if [ "$2" = "" ]; then echo "USER ERROR: please specify AWS credentials file"; exit -1; fi
+export AWS_CREDENTIAL_FILE=$2
+. AWS_CREDENTIAL_FILE
 export AWS_ACCESS_KEY=$AWSAccessKeyId
 export AWS_SECRET_KEY=$AWSSecretKey
 
@@ -42,7 +44,7 @@ echo AWSSecretKey=$AWSSecretKey >> /root/.aws.creds
 apt-get install -y git
 
 cd /root
-git clone https://github.com/atramos/ec2-spotter.git
+git clone https://github.com/slavivanov/ec2-spotter.git
 
 cd ec2-spotter
 ./ec2spotter-setup
@@ -53,27 +55,31 @@ userData=$(base64 user-data.tmp | tr -d '\n');
 
 cat >specs.tmp <<EOF
 {
-  "KeyName" : "$PUB_KEY",
-  "InstanceType": "$ec2spotter_instance_type",
   "ImageId" : "$ec2spotter_preboot_image_id",
-  "UserData" : "${userData}",
+  "InstanceType": "$ec2spotter_instance_type",
+  "KeyName" : "$PUB_KEY",
+  "EbsOptimized": true,
+  "Placement": {
+     "AvailabilityZone": "us-east-1c"
+  },
   "BlockDeviceMappings": [
     {
-      "DeviceName" : "/dev/sda1",
+      "DeviceName": "/dev/sda1",
       "Ebs": {
-        "VolumeSize": 8,
         "DeleteOnTermination": true,
-        "VolumeType" : "standard"
+        "VolumeType": "gp2",
+        "VolumeSize": 8,
       }
     }
-  ]
+  ],
+  "SecurityGroupIds": ["sg-28156654"],
+  "SubnetId": "subnet-43b5b60a",
+  "UserData" : "${userData}"
 }
 EOF
 
-aws ec2 request-spot-instances --spot-price $ec2spotter_bid_price --type persistent --launch-specification file://specs.tmp --region ${LAUNCH_REGION} > spot.tmp
-
-SPOT_ID=$(jq -r '.SpotInstanceRequests[0].SpotInstanceRequestId' spot.tmp)
-
-echo SPOT_ID=$SPOT_ID
-
-aws ec2 create-tags --resources ${SPOT_ID} --tags Key=Name,Value=${ROOT_VOL_NAME} --region ${LAUNCH_REGION}
+SPOT_REQUEST_ID = $(aws ec2 request-spot-instances --launch-specification file://specs.tmp --type persistent --spot-price $ec2spotter_bid_price --output="text" --query="SpotInstanceRequests[*].SpotInstanceRequestId" --region ${LAUNCH_REGION})
+echo SPOT_REQUEST_ID=$SPOT_REQUEST_ID
+# Clean up
+# rm user-data.tmp
+# rm specs.tmp
