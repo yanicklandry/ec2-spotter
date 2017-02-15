@@ -27,8 +27,8 @@ ROOT_ZONE=$ec2spotter_volume_zone
 ROOT_REGION=$(echo $ROOT_ZONE | sed -e 's/.$//')
 
 
-echo "ROOT_VOL_NAME=${ROOT_VOL_NAME}; ROOT_ZONE=${ROOT_ZONE}; ROOT_REGION=${ROOT_REGION}; "
-echo "LAUNCH_ZONE=${LAUNCH_ZONE}; LAUNCH_REGION=${LAUNCH_REGION}; PUB_KEY=${PUB_KEY}"
+#echo "ROOT_VOL_NAME=${ROOT_VOL_NAME}; ROOT_ZONE=${ROOT_ZONE}; ROOT_REGION=${ROOT_REGION}; "
+#echo "LAUNCH_ZONE=${LAUNCH_ZONE}; LAUNCH_REGION=${LAUNCH_REGION}; PUB_KEY=${PUB_KEY}"
 
 if [ "$2" = "" ]; then echo "USER ERROR: please specify AWS credentials file"; exit -1; fi
 export AWS_CREDENTIAL_FILE=$2
@@ -43,7 +43,7 @@ aws ec2 describe-volumes \
 ROOT_VOL=$(jq -r '.Volumes[0].VolumeId' volumes.tmp)
 ROOT_TYPE=$(jq -r '.Volumes[0].VolumeType' volumes.tmp)
 
-echo "ROOT_ZONE=${ROOT_ZONE}; ROOT_TYPE=$ROOT_TYPE; ROOT_VOL=$ROOT_VOL";
+#echo "ROOT_TYPE=$ROOT_TYPE; ROOT_VOL=$ROOT_VOL";
 
 if [ "$ROOT_VOL_NAME" = "" ]
 then
