@@ -4,6 +4,8 @@
 
 if [ "$1" = "" ]; then echo "USER ERROR: please specify a configuration file"; exit -1; fi
 
+cd $(dirname $0)
+
 . $1 || exit -1
 
 # New instance:
@@ -93,7 +95,7 @@ cat >specs.tmp <<EOF
 }
 EOF
 
-SPOT_REQUEST_ID=$(aws ec2 request-spot-instances --launch-specification file://specs.tmp --type persistent --spot-price $ec2spotter_bid_price --output="text" --query="SpotInstanceRequests[*].SpotInstanceRequestId" --region ${LAUNCH_REGION})
+SPOT_REQUEST_ID=$(aws ec2 request-spot-instances --launch-specification file://specs.tmp --spot-price $ec2spotter_bid_price --output="text" --query="SpotInstanceRequests[*].SpotInstanceRequestId" --region ${LAUNCH_REGION})
 echo $SPOT_REQUEST_ID
 # Clean up
 rm user-data.tmp
