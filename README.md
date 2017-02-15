@@ -9,14 +9,12 @@ This script enables you to continue with your Spot instance where you left off.
 
 1) Get the scripts onto your "management workstation" (e.g. your computer or a throw-away On Demand t2.micro instance).
 
-
 ```
 git clone https://github.com/slavivanov/ec2-spotter.git
 cd ec2-spotter
 ```
 
 2) Create `.aws.creds` with your actual IAM credentials with EC2 privileges in this format:
-Note: If you use the aws cli you already have this file created, so skip this step and supply the file in step 5.
 
 ```
 AWSAccessKeyId=XXXXXXXXXXXXXXXXXXXX
@@ -33,6 +31,7 @@ AWSSecretKey=XXXXXXXXXXXXXXXXXXXXXXXXXX
 
 
 5) Launch the spot instance: 
+Note: Make sure you have jq installed (https://stedolan.github.io/jq/download/)
 
 ```
 ./ec2spotter-launch example.conf .aws.creds
