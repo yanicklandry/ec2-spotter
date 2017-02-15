@@ -32,13 +32,6 @@ export AWS_CREDENTIAL_FILE=/root/.aws.creds
 export AWS_ACCESS_KEY=$AWSAccessKeyId
 export AWS_SECRET_KEY=$AWSSecretKey
 
-#TODO Replace with awscli
-export AMIBIN=./ec2-ami-tools-*/bin
-export APIBIN=./ec2-api-tools-*/bin
-export EC2_HOME=$(ls -d ./ec2-api-tools-*)
-export JAVA_HOME=/usr/lib/jvm/default-java
-export ARCH=`uname -i`
-
 echo "Looking for a volume in $ROOT_REGION with Name = $ROOT_VOL_NAME"
 aws ec2 describe-volumes \
         --filters Name=tag-key,Values="Name" Name=tag-value,Values="$ROOT_VOL_NAME" \
