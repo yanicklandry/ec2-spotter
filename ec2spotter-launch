@@ -5,14 +5,30 @@
 if [ "$1" = "" ]; then echo "USER ERROR: please specify a configuration file"; exit -1; fi
 
 . $1 || exit -1
-ROOT_VOL_NAME=$ec2spotter_volume_name
+
+# New instance:
 # Desired launch zone
 LAUNCH_ZONE=$ec2spotter_launch_zone
 # Region is LAUNCH_ZONE minus the last character
 LAUNCH_REGION=$(echo $LAUNCH_ZONE | sed -e 's/.$//')
 PUB_KEY=$ec2spotter_key_name
 
-echo "ROOT_VOL_NAME=${ROOT_VOL_NAME}; LAUNCH_ZONE=${LAUNCH_ZONE}; LAUNCH_REGION=${LAUNCH_REGION}; PUB_KEY=${PUB_KEY}"
+# Existing Volume:
+# If no volume zone
+if [ "x$ec2spotter_volume_zone" = "x" ]
+then # Use instance zone
+	$ec2spotter_volume_zone = $LAUNCH_ZONE
+fi
+# Name of volume (find it by name later)
+ROOT_VOL_NAME=$ec2spotter_volume_name
+# zone of volume (needed if different than instance zone)
+ROOT_ZONE=$ec2spotter_volume_zone
+# Region is Zone minus the last character
+ROOT_REGION=$(echo $ROOT_ZONE | sed -e 's/.$//')
+
+
+echo "ROOT_VOL_NAME=${ROOT_VOL_NAME}; ROOT_ZONE=${ROOT_ZONE}; ROOT_REGION=${ROOT_REGION}; "
+echo "LAUNCH_ZONE=${LAUNCH_ZONE}; LAUNCH_REGION=${LAUNCH_REGION}; PUB_KEY=${PUB_KEY}"
 
 if [ "$2" = "" ]; then echo "USER ERROR: please specify AWS credentials file"; exit -1; fi
 export AWS_CREDENTIAL_FILE=$2
@@ -22,9 +38,8 @@ export AWS_SECRET_KEY=$AWSSecretKey
 
 aws ec2 describe-volumes \
 	--filters Name=tag-key,Values="Name" Name=tag-value,Values="$ROOT_VOL_NAME" \
-	--region ${LAUNCH_REGION} > volumes.tmp || exit -1
+	--region ${ROOT_REGION} > volumes.tmp || exit -1
 
-ROOT_ZONE=$(jq -r '.Volumes[0].AvailabilityZone' volumes.tmp)
 ROOT_VOL=$(jq -r '.Volumes[0].VolumeId' volumes.tmp)
 ROOT_TYPE=$(jq -r '.Volumes[0].VolumeType' volumes.tmp)
 
@@ -48,7 +63,7 @@ git clone https://github.com/slavivanov/ec2-spotter.git
 
 cd ec2-spotter
 ./ec2spotter-setup
-./ec2spotter-remount-root --force ${ROOT_VOL_NAME} $ec2spotter_elastic_ip
+./ec2spotter-remount-root --force ${ROOT_VOL_NAME} ${ROOT_REGION} $ec2spotter_elastic_ip
 EOF
 
 userData=$(base64 user-data.tmp | tr -d '\n');
@@ -60,7 +75,7 @@ cat >specs.tmp <<EOF
   "KeyName" : "$PUB_KEY",
   "EbsOptimized": true,
   "Placement": {
-     "AvailabilityZone": "us-east-1c"
+     "AvailabilityZone": "$LAUNCH_ZONE"
   },
   "BlockDeviceMappings": [
     {
@@ -68,7 +83,7 @@ cat >specs.tmp <<EOF
       "Ebs": {
         "DeleteOnTermination": true,
         "VolumeType": "gp2",
-        "VolumeSize": 8,
+        "VolumeSize": 8
       }
     }
   ],
@@ -78,8 +93,9 @@ cat >specs.tmp <<EOF
 }
 EOF
 
-SPOT_REQUEST_ID = $(aws ec2 request-spot-instances --launch-specification file://specs.tmp --type persistent --spot-price $ec2spotter_bid_price --output="text" --query="SpotInstanceRequests[*].SpotInstanceRequestId" --region ${LAUNCH_REGION})
-echo SPOT_REQUEST_ID=$SPOT_REQUEST_ID
+SPOT_REQUEST_ID=$(aws ec2 request-spot-instances --launch-specification file://specs.tmp --type persistent --spot-price $ec2spotter_bid_price --output="text" --query="SpotInstanceRequests[*].SpotInstanceRequestId" --region ${LAUNCH_REGION})
+echo $SPOT_REQUEST_ID
 # Clean up
-# rm user-data.tmp
-# rm specs.tmp
+rm user-data.tmp
+rm specs.tmp
+rm volumes.tmp
