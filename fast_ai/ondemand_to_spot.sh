@@ -49,7 +49,6 @@ fi
 
 # Get the scripts that will perform the swap from github
 # Switch to --branch stable eventually.
-git clone --depth=1 https://github.com/slavivanov/ec2-spotter.git
 export config_file=../my.conf
 
 # Create the ec2 spotter file
@@ -88,4 +87,4 @@ AWSAccessKeyId=$aws_key
 AWSSecretKey=$aws_secret
 EOL
 
-echo All done, you can start your spot instance with: sh fast_ai/start_spot.sh
+echo All done, you can start your spot instance with: sh start_spot.sh

@@ -1,4 +1,3 @@
-export name=fast-ai
 # The config file was created in ondemand_to_spot.sh
 export config_file=my.conf
 
@@ -25,7 +24,8 @@ then
 else
 	# Non elastic IP
 	export ip=`aws ec2 describe-instances --instance-ids $instance_id --filter Name=instance-state-name,Values=running --query "Reservations[*].Instances[*].PublicIpAddress" --output=text`
-	
 fi	
+
+export name=fast-ai
 echo Then connect to your instance: ssh -i ~/.ssh/aws-key-$name.pem ubuntu@$ip
 
