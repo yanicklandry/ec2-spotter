@@ -61,12 +61,16 @@ echo AWSSecretKey=$AWSSecretKey >> /root/.aws.creds
 
 apt-get install -y git
 
+apt-get update
+apt-get install -y jq
+apt-get install -y python-pip python-setuptools
+pip install awscli
+
 cd /root
 git clone --depth=1 https://github.com/slavivanov/ec2-spotter.git
 echo Got spotter scripts from github.
 
 cd ec2-spotter
-./ec2spotter-setup
 
 echo Swapping root volume
 ./ec2spotter-remount-root  --force 1 --vol_name ${ROOT_VOL_NAME} --vol_region ${ROOT_REGION} --elastic_ip $ec2spotter_elastic_ip 
@@ -93,26 +97,14 @@ cat >specs.tmp <<EOF
       }
     }
   ],
-EOF
-
-# Add subnet ID if provided
-if ! [ "$ec2spotter_subnet" = "" ]
-then
-	  cat >>specs.tmp <<EOF
-  "SubnetId": "${ec2spotter_subnet}",
-EOF
-fi
-
-# Add security group if provided
-if ! [ "$ec2spotter_security_group" = "" ]
-then
-	  cat >>specs.tmp <<EOF
-  "SecurityGroupIds": ["${ec2spotter_security_group}"],
-EOF
-fi
-
-# Finish the specs.tmp
-cat >>specs.tmp <<EOF
+  "NetworkInterfaces": [
+      {
+        "DeviceIndex": 0,
+        "SubnetId": "${ec2spotter_subnet}",
+        "Groups": [ "${ec2spotter_security_group}" ],
+        "AssociatePublicIpAddress": true
+      }
+  ],
   "UserData" : "${userData}"
 }
 EOF

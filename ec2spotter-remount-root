@@ -66,12 +66,6 @@ ROOT_ZONE=$(jq -r '.Volumes[0].AvailabilityZone' volumes.tmp)
 ROOT_VOL=$(jq -r '.Volumes[0].VolumeId' volumes.tmp)
 ROOT_TYPE=$(jq -r '.Volumes[0].VolumeType' volumes.tmp)
 
-# acquire the elastic ip
-if ! [ "$ec2spotter_elastic_ip"x = x ]
-then
-  aws ec2 associate-address --instance-id $INSTANCE_ID --allocation-id $ec2spotter_elastic_ip --allow-reassociation --region ${SPOT_REGION}
-fi
-
 # Are we copying the volume from the same region?
 if [[ $ROOT_ZONE != $SPOT_ZONE ]]; then
     # need to copy the volume across
@@ -180,7 +174,7 @@ mkdir $NEWMNT
 # modify /sbin/init on the ephemeral volume to chain-load from the persistent EBS volume, and then reboot.
 #
 mv /sbin/init /sbin/init.backup
-cat >/sbin/init <<EOF
+cat >/sbin/init <<EOF11
 #!/bin/sh
 mount $DEVICE $NEWMNT
 [ ! -d $NEWMNT/$OLDMNT ] && mkdir -p $NEWMNT/$OLDMNT
@@ -193,6 +187,6 @@ for dir in /dev /proc /sys /run; do
     mount --move ./${OLDMNT}\${dir} \${dir}
 done
 exec chroot . /sbin/init
-EOF
+EOF11
 chmod +x /sbin/init
 shutdown -r now
