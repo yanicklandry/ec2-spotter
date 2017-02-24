@@ -69,7 +69,7 @@ cd ec2-spotter
 ./ec2spotter-setup
 
 echo Swapping root volume
-./ec2spotter-remount-root --force ${ROOT_VOL_NAME} ${ROOT_REGION} $ec2spotter_elastic_ip
+./ec2spotter-remount-root  --force 1 --vol_name ${ROOT_VOL_NAME} --vol_region ${ROOT_REGION} --elastic_ip $ec2spotter_elastic_ip --security_group_id $security_group_id
 EOF
 
 userData=$(base64 user-data.tmp | tr -d '\n');
@@ -104,15 +104,12 @@ EOF
 fi
 
 # Add security group if provided
-if ! [ "$ec2spotter_subnet" = "" ]
+if ! [ "$ec2spotter_security_group" = "" ]
 then
 	  cat >>specs.tmp <<EOF
   "SecurityGroups": ["${ec2spotter_security_group}"],
 EOF
 fi
-
-"AssociatePublicIpAddress": true|false,
-
 
 # Finish the specs.tmp
 cat >>specs.tmp <<EOF

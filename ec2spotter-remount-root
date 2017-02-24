@@ -1,24 +1,55 @@
 #!/bin/bash
-
 # "Phase 2" this script is invoked inside of the spot VM at boot time to find the root volume.
 
-if ! [ "x$1" = "x--force" ]
+manual_invoke=1
+
+# Read the input args
+while [[ $# -gt 0 ]]
+do
+key="$1"
+case $key in
+	--force)
+	manual_invoke=0
+	shift # past argument
+	;;
+    --vol_name)
+    ROOT_VOL_NAME="$2"
+    shift # past argument
+    ;;
+    --vol_region)
+    ROOT_REGION="$2"
+    shift # past argument
+    ;;
+    --elastic_ip)
+    ec2spotter_elastic_ip="$2"
+    shift # past argument
+    ;;
+	--security_group_id)
+	security_group_id="$2"
+	shift # past argument
+	;;
+    *)
+            # unknown option
+    ;;
+esac
+shift # past argument or value
+done
+
+if [ manual_invoke = 1 ]
 then 
   # this is here just to cover accidental invocation from the command-line. it should "never happen"
   echo "This script is destructive when invoked at the wrong time. If you are seeing this message you are doing something wrong."
   exit -1
 fi
 
-if [ "x$2" = "x" ]; then echo "missing volume name"; exit -1; fi
+if [ "x$ROOT_VOL_NAME" = "x" ]; then echo "missing volume name"; exit -1; fi
 
-ROOT_VOL_NAME=$2
 
-if [ "x$3" = "x" ]
+if [ "x$ROOT_REGION" = "x" ]
 then 
 	echo "missing volume region"; 
 	exit -1; 
 fi
-ROOT_REGION=$3
 
 # Get Instance ID and current zone from AWS
 export INSTANCE_ID=`curl -s http://169.254.169.254/latest/meta-data/instance-id`
@@ -39,11 +70,15 @@ ROOT_ZONE=$(jq -r '.Volumes[0].AvailabilityZone' volumes.tmp)
 ROOT_VOL=$(jq -r '.Volumes[0].VolumeId' volumes.tmp)
 ROOT_TYPE=$(jq -r '.Volumes[0].VolumeType' volumes.tmp)
 
-ec2spotter_elastic_ip=$4
 # acquire the elastic ip
 if ! [ "$ec2spotter_elastic_ip"x = x ]
 then
   aws ec2 associate-address --instance-id $INSTANCE_ID --allocation-id $ec2spotter_elastic_ip --allow-reassociation --region ${SPOT_REGION}
+fi
+
+if ! [ "$security_group_id"x = x ]
+then
+  aws ec2 modify-instance-attribute --instance-id $INSTANCE_ID --groups $security_group_id --region ${SPOT_REGION}
 fi
 
 # Are we copying the volume from the same region?
