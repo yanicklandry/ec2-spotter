@@ -21,6 +21,7 @@ if [ "$ec2spotter_volume_zone" = "" ]
 then # Use instance zone
 	$ec2spotter_volume_zone = $LAUNCH_ZONE
 fi
+
 # Name of volume (find it by name later)
 ROOT_VOL_NAME=$ec2spotter_volume_name
 # zone of volume (needed if different than instance zone)
@@ -62,9 +63,12 @@ apt-get install -y git
 
 cd /root
 git clone --depth=1 https://github.com/slavivanov/ec2-spotter.git
+echo Got spotter scripts from github.
 
 cd ec2-spotter
 ./ec2spotter-setup
+
+echo Swapping root volume
 ./ec2spotter-remount-root --force ${ROOT_VOL_NAME} ${ROOT_REGION} $ec2spotter_elastic_ip
 EOF
 
@@ -98,6 +102,17 @@ then
   "SubnetId": "${ec2spotter_subnet}",
 EOF
 fi
+
+# Add security group if provided
+if ! [ "$ec2spotter_subnet" = "" ]
+then
+	  cat >>specs.tmp <<EOF
+  "SecurityGroups": ["${ec2spotter_security_group}"],
+EOF
+fi
+
+"AssociatePublicIpAddress": true|false,
+
 
 # Finish the specs.tmp
 cat >>specs.tmp <<EOF

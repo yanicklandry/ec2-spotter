@@ -20,8 +20,6 @@ then
 fi
 ROOT_REGION=$3
 
-ec2spotter_elastic_ip=$4
-
 # Get Instance ID and current zone from AWS
 export INSTANCE_ID=`curl -s http://169.254.169.254/latest/meta-data/instance-id`
 export SPOT_ZONE=`curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone`
@@ -40,6 +38,13 @@ aws ec2 describe-volumes \
 ROOT_ZONE=$(jq -r '.Volumes[0].AvailabilityZone' volumes.tmp)
 ROOT_VOL=$(jq -r '.Volumes[0].VolumeId' volumes.tmp)
 ROOT_TYPE=$(jq -r '.Volumes[0].VolumeType' volumes.tmp)
+
+ec2spotter_elastic_ip=$4
+# acquire the elastic ip
+if ! [ "$ec2spotter_elastic_ip"x = x ]
+then
+  aws ec2 associate-address --instance-id $INSTANCE_ID --allocation-id $ec2spotter_elastic_ip --allow-reassociation --region ${SPOT_REGION}
+fi
 
 # Are we copying the volume from the same region?
 if [[ $ROOT_ZONE != $SPOT_ZONE ]]; then
@@ -136,12 +141,6 @@ do
   echo "waiting for device to attach"
   sleep 5
 done
-
-# acquire the elastic ip
-if ! [ "$ec2spotter_elastic_ip"x = x ]
-then
-  aws ec2 associate-address --instance-id $INSTANCE_ID --allocation-id $ec2spotter_elastic_ip --allow-reassociation --region ${SPOT_REGION}
-fi
 
 DEVICE=/dev/xvdf1
 NEWMNT=/permaroot
