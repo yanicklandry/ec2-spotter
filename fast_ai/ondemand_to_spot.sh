@@ -50,7 +50,7 @@ fi
 # Get the scripts that will perform the swap from github
 # Switch to --branch stable eventually.
 git clone --depth=1 https://github.com/slavivanov/ec2-spotter.git
-export config_file=ec2-spotter/my.conf
+export config_file=../my.conf
 
 # Create the ec2 spotter file
 cat > $config_file <<EOL
