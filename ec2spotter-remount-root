@@ -24,10 +24,6 @@ case $key in
     ec2spotter_elastic_ip="$2"
     shift # past argument
     ;;
-	--security_group_id)
-	security_group_id="$2"
-	shift # past argument
-	;;
     *)
             # unknown option
     ;;
@@ -74,11 +70,6 @@ ROOT_TYPE=$(jq -r '.Volumes[0].VolumeType' volumes.tmp)
 if ! [ "$ec2spotter_elastic_ip"x = x ]
 then
   aws ec2 associate-address --instance-id $INSTANCE_ID --allocation-id $ec2spotter_elastic_ip --allow-reassociation --region ${SPOT_REGION}
-fi
-
-if ! [ "$security_group_id"x = x ]
-then
-  aws ec2 modify-instance-attribute --instance-id $INSTANCE_ID --groups $security_group_id --region ${SPOT_REGION}
 fi
 
 # Are we copying the volume from the same region?
