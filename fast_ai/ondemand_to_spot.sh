@@ -29,11 +29,11 @@ export zone=`aws ec2 describe-instances --instance-ids $instanceId --output text
 export subnet=`aws ec2 describe-instances --instance-ids $instanceId --output text --query 'Reservations[*].Instances[0].SubnetId'`
 
 # Terminate the on-demand instance
-# aws ec2 terminate-instances --instance-ids $instanceId
-#
-# # wait until the volume is available
-# echo 'Waiting for volume to become available.'
-# aws ec2 wait volume-available --volume-ids $volumeId
+aws ec2 terminate-instances --instance-ids $instanceId
+
+# wait until the volume is available
+echo 'Waiting for volume to become available.'
+aws ec2 wait volume-available --volume-ids $volumeId
 
 export region=`aws configure get region`
 # The ami to boot up the spot instance with.
