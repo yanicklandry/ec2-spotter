@@ -19,6 +19,10 @@ aws ec2 create-tags --resources $volumeId --tags Key=Name,Value="${name}-volume"
 # Get the Elastic IP id
 export ip=`aws ec2 describe-instances --instance-ids $instanceId --output text --query 'Reservations[*].Instances[0].NetworkInterfaces[0].Association.PublicIp'`
 export elasticId=`aws ec2 describe-addresses --public-ips $ip --output text --query 'Addresses[0].AllocationId'`
+# We want empty elastic id if not present, not None
+if [ "$elasticId" = "None"] 
+then
+	export elasticId=
 
 # Get the security group of the instance
 export securityGroup=`aws ec2 describe-instances --instance-ids $instanceId --output text --query 'Reservations[*].Instances[0].SecurityGroups[0].GroupId'`
