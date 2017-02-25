@@ -1,6 +1,9 @@
 # The config file was created in ondemand_to_spot.sh
 export config_file=my.conf
 
+# Set current dir to working dir - http://stackoverflow.com/a/10348989/277871
+cd "$(dirname ${BASH_SOURCE[0]})"
+
 . ../$config_file || exit -1
 
 export request_id=`../ec2spotter-launch $config_file .aws.creds`
@@ -17,7 +20,7 @@ aws ec2 wait instance-running --instance-ids $instance_id
 echo Spot instance ID: $instance_id 
 
 echo 'Please allow the root volume swap script a few minutes to finish.'
-if [ "$ec2spotter_elastic_ip" = ""]
+if [ "x$ec2spotter_elastic_ip" = "x"]
 then
 	# Elastic IP
 	export ip=`aws ec2 describe-addresses --allocation-ids $ec2spotter_elastic_ip --output text --query 'Addresses[0].PublicIp'`
@@ -27,5 +30,7 @@ else
 fi	
 
 export name=fast-ai
-echo Then connect to your instance: ssh -i ~/.ssh/aws-key-$name.pem ubuntu@$ip
-
+if [ "$ec2spotter_key_name" = "aws-key-$name" ] 
+then
+	echo Then connect to your instance: ssh -i ~/.ssh/aws-key-$name.pem ubuntu@$ip
+fi
