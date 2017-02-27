@@ -41,7 +41,7 @@ export AWS_SECRET_KEY=$AWSSecretKey
 
 aws ec2 describe-volumes \
 	--filters Name=tag-key,Values="Name" Name=tag-value,Values="$ROOT_VOL_NAME" \
-	--region ${ROOT_REGION} > volumes.tmp || exit -1
+	--region ${ROOT_REGION} --output=json > volumes.tmp || exit -1
 
 ROOT_VOL=$(jq -r '.Volumes[0].VolumeId' volumes.tmp)
 ROOT_TYPE=$(jq -r '.Volumes[0].VolumeType' volumes.tmp)
