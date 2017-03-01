@@ -3,6 +3,9 @@ export name="fast-ai"
 export keyName="aws-key-$name"
 export maxPricePerHour=0.5
 
+# Set current dir to working dir - http://stackoverflow.com/a/10348989/277871
+cd "$(dirname ${BASH_SOURCE[0]})"
+
 # Find the instance id by the instance name (if there are two instances with same name, use the first one)
 export instanceId=`aws ec2 describe-instances --filters Name=tag:Name,Values=$name-gpu-machine --output text --query 'Reservations[*].Instances[0].InstanceId'`
 
@@ -84,7 +87,7 @@ ec2spotter_preboot_image_id=$ami
 EOL
 
 # Create an file with aws credentials
-export aws_credentials_file=ec2-spotter/.aws.creds
+export aws_credentials_file=../.aws.creds
 aws_key=`aws configure get aws_access_key_id`
 aws_secret=`aws configure get aws_secret_access_key`
 cat > $aws_credentials_file <<EOL
