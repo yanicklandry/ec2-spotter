@@ -22,11 +22,11 @@ echo Spot instance ID: $instance_id
 echo 'Please allow the root volume swap script a few minutes to finish.'
 if [ "x$ec2spotter_elastic_ip" = "x" ]
 then
-	# Elastic IP
-	export ip=`aws ec2 describe-addresses --allocation-ids $ec2spotter_elastic_ip --output text --query 'Addresses[0].PublicIp'`
-else
 	# Non elastic IP
 	export ip=`aws ec2 describe-instances --instance-ids $instance_id --filter Name=instance-state-name,Values=running --query "Reservations[*].Instances[*].PublicIpAddress" --output=text`
+else
+	# Elastic IP
+	export ip=`aws ec2 describe-addresses --allocation-ids $ec2spotter_elastic_ip --output text --query 'Addresses[0].PublicIp'`
 fi	
 
 export name=fast-ai
