@@ -19,7 +19,7 @@ PUB_KEY=$ec2spotter_key_name
 # If no volume zone
 if [ "$ec2spotter_volume_zone" = "" ]
 then # Use instance zone
-	$ec2spotter_volume_zone = $LAUNCH_ZONE
+	ec2spotter_volume_zone=$LAUNCH_ZONE
 fi
 
 # Name of volume (find it by name later)
