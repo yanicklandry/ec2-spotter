@@ -21,7 +21,8 @@ aws ec2 create-tags --resources $volumeId --tags Key=Name,Value="${name}-volume"
 
 # Get the Elastic IP id
 export ip=`aws ec2 describe-instances --instance-ids $instanceId --output text --query 'Reservations[*].Instances[0].NetworkInterfaces[0].Association.PublicIp'`
-export elasticId=`aws ec2 describe-addresses --public-ips $ip --output text --query 'Addresses[0].AllocationId'`
+# Supress errors if this is not an elastic ip
+export elasticId=`aws ec2 describe-addresses --public-ips $ip --output text --query 'Addresses[0].AllocationId' 2>/dev/null`
 # We want empty elastic id if not present, not None
 if [ "$elasticId" = "None" ] 
 then
