@@ -97,6 +97,9 @@ aws ec2 wait instance-running --instance-ids $instance_id
 
 echo Spot instance ID: $instance_id 
 
+# Change the instance name
+aws ec2 create-tags --resources $instance_id --tags --tags Key=Name,Value=$name-gpu-machine
+
 # Get the instance IP
 export instance_ip=`aws ec2 describe-instances --instance-ids $instance_id --filter Name=instance-state-name,Values=running --query "Reservations[*].Instances[*].PublicIpAddress" --output=text`
 
