@@ -169,6 +169,14 @@ do
   sleep 5
 done
 
+# Remove .aws.creds file because it's not very safe to keep them on a random server
+unset AWS_ACCESS_KEY
+unset AWS_SECRET_KEY
+unset AWSAccessKeyId
+unset AWSSecretKey
+rm $AWS_CREDENTIAL_FILE
+
+# Ready up for the swap
 DEVICE=/dev/xvdf1
 NEWMNT=/permaroot
 OLDMNT=old-root
