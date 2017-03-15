@@ -1,4 +1,5 @@
-# Defaults 
+# Parameters defaults
+# Image to start the instance from.
 ami=ami-31ecfb26 
 # Use the subnet ID from that create_vpc.sh printed.
 subnetId=subnetId
@@ -13,7 +14,6 @@ key_name=aws-key-$name
 ec2spotter_instance_type=p2.xlarge
 # In USD, the maximum price we are willing to pay.
 bid_price=0.5
-
 
 # Read the input args
 while [[ $# -gt 0 ]]
@@ -54,12 +54,12 @@ case $key in
 esac
 shift # pass argument or value
 done
- 
+
 # Create a config file to launch the instance.
 cat >specs.tmp <<EOF 
 {
   "ImageId" : "$ami",
-  "InstanceType": "",
+  "InstanceType": "$ec2spotter_instance_type",
   "KeyName" : "$key_name",
   "EbsOptimized": true,
   "BlockDeviceMappings": [
@@ -75,14 +75,15 @@ cat >specs.tmp <<EOF
   "NetworkInterfaces": [
       {
         "DeviceIndex": 0,
-        "SubnetId": "${securityGroupId}",
-        "Groups": [ "${subnetId}" ],
+        "SubnetId": "${subnetId}",
+        "Groups": [ "${securityGroupId}" ],
         "AssociatePublicIpAddress": true
       }
   ]
 }
 EOF
-# Request the instances 
+
+# Request the spot instance
 export request_id=`aws ec2 request-spot-instances --launch-specification file://specs.tmp --spot-price $bid_price --output="text" --query="SpotInstanceRequests[*].SpotInstanceRequestId"`
 
 echo Waiting for spot request to be fulfilled...
@@ -96,9 +97,10 @@ aws ec2 wait instance-running --instance-ids $instance_id
 
 echo Spot instance ID: $instance_id 
 
-export ip=`aws ec2 describe-instances --instance-ids $instance_id --filter Name=instance-state-name,Values=running --query "Reservations[*].Instances[*].PublicIpAddress" --output=text`
+# Get the instance IP
+export instance_ip=`aws ec2 describe-instances --instance-ids $instance_id --filter Name=instance-state-name,Values=running --query "Reservations[*].Instances[*].PublicIpAddress" --output=text`
 
-echo Spot Instance IP: $ip
+echo Spot Instance IP: $instance_ip
 
 # Clean up
 rm specs.tmp
