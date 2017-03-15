@@ -86,13 +86,4 @@ ec2spotter_security_group=$securityGroup
 ec2spotter_preboot_image_id=$ami
 EOL
 
-# Create an file with aws credentials
-export aws_credentials_file=../.aws.creds
-aws_key=`aws configure get aws_access_key_id`
-aws_secret=`aws configure get aws_secret_access_key`
-cat > $aws_credentials_file <<EOL
-AWSAccessKeyId=$aws_key
-AWSSecretKey=$aws_secret
-EOL
-
 echo All done, you can start your spot instance with: sh start_spot.sh
