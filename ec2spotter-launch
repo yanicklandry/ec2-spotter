@@ -113,5 +113,5 @@ SPOT_REQUEST_ID=$(aws ec2 request-spot-instances --launch-specification file://s
 echo $SPOT_REQUEST_ID
 # Clean up
 rm user-data.tmp
-# rm specs.tmp
+rm specs.tmp
 rm volumes.tmp
