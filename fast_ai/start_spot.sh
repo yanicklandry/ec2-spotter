@@ -6,7 +6,7 @@ cd "$(dirname ${BASH_SOURCE[0]})"
 
 . ../$config_file || exit -1
 
-export request_id=`../ec2spotter-launch $config_file .aws.creds`
+export request_id=`../ec2spotter-launch $config_file`
 echo Spot request ID: $request_id
 
 echo Waiting for spot request to be fulfilled...
