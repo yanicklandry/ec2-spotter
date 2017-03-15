@@ -9,7 +9,7 @@ cd "$(dirname ${BASH_SOURCE[0]})"
 # Find the instance id by the instance name (if there are two instances with same name, use the first one)
 export instanceId=`aws ec2 describe-instances --filters Name=tag:Name,Values=$name-gpu-machine --output text --query 'Reservations[*].Instances[0].InstanceId'`
 
-# By default, we will delete this volume if the instance is terminated. 
+# By default, AWS will delete this volume if the instance is terminated. 
 # We need this volume for the spot instance, so let's fix this.
 aws ec2 modify-instance-attribute --instance-id $instanceId --block-device-mappings "[{\"DeviceName\": \"/dev/sda1\",\"Ebs\":{\"DeleteOnTermination\":false}}]"
 
