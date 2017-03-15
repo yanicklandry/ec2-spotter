@@ -26,6 +26,8 @@ export subnetId=`aws ec2 create-subnet --vpc-id $vpcId --cidr-block 10.0.0.0/28 
 aws ec2 modify-subnet-attribute --subnet-id $subnetId --map-public-ip-on-launch
 aws ec2 create-tags --resources $subnetId --tags --tags Key=Name,Value=$name-subnet
 
+echo subnetId=$subnetId
+
 export routeTableId=`aws ec2 create-route-table --vpc-id $vpcId --query 'RouteTable.RouteTableId' --output text`
 aws ec2 create-tags --resources $routeTableId --tags --tags Key=Name,Value=$name-route-table
 export routeTableAssoc=`aws ec2 associate-route-table --route-table-id $routeTableId --subnet-id $subnetId --output text`
@@ -36,6 +38,8 @@ export securityGroupId=`aws ec2 create-security-group --group-name $name-securit
 aws ec2 authorize-security-group-ingress --group-id $securityGroupId --protocol tcp --port 22 --cidr $cidr
 # jupyter notebook
 aws ec2 authorize-security-group-ingress --group-id $securityGroupId --protocol tcp --port 8888-8898 --cidr $cidr
+
+echo securityGroupId=$securityGroupId
 
 if [ ! -d ~/.ssh ]
 then
