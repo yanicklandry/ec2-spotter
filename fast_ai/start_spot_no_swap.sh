@@ -6,7 +6,7 @@ subnetId=subnetId
 # Use the security group ID that create_vpc.sh printed.
 securityGroupId=securityGroupId
 # The size of the root volume, in GB.
-volume_size=50
+volume_size=128
 # The name of the key file we'll use to log into the instance. create_vpc.sh sets it to aws-key-fast-ai
 name=fast-ai
 key_name=aws-key-$name
