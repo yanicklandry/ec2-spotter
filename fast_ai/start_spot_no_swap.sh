@@ -1,10 +1,4 @@
 # Parameters defaults
-# Image to start the instance from.
-ami=ami-31ecfb26 
-# Use the subnet ID from that create_vpc.sh printed.
-subnetId=subnetId
-# Use the security group ID that create_vpc.sh printed.
-securityGroupId=securityGroupId
 # The size of the root volume, in GB.
 volume_size=128
 # The name of the key file we'll use to log into the instance. create_vpc.sh sets it to aws-key-fast-ai
